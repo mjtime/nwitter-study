@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { addDoc, collection } from "firebase/firestore";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
+import { auth, db } from "../firebase";
 
 const Form = styled.form`
   display: flex;
@@ -56,32 +58,124 @@ const SubmitBtn = styled.input`
   }
 `;
 
+const ImgPreviewWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const RemoveImageButton = styled.button`
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background-color: transparent;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+`;
+
+const ImgPreview = styled.img`
+  width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid #333;
+`;
+
 export default function PostTweetForm() {
   const [isLoading, setLoading] = useState(false);
   const [tweet, setTweet] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const MAX_FILE_SIZE = 300 * 1024; // 300KB
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTweet(e.target.value);
   };
+
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files.length === 1) {
-      setFile(files[0]);
+    if (!files || files.length !== 1) return;
+
+    const selectedFile = files[0];
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      alert("300KB 이하의 이미지만 업로드 가능합니다.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFile(reader.result as string);
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
+  const onRemoveImage = () => {
+    setFile(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user || isLoading || tweet === "" || tweet.length > 180) return;
+
+    try {
+      setLoading(true);
+      await addDoc(collection(db, "tweets"), {
+        tweet,
+        createdAt: Date.now(),
+        username: user.displayName || "Anonymous",
+        userId: user.uid,
+
+        ...(file && {
+          image: {
+            type: "base64",
+            value: file,
+          },
+        }),
+      });
+      setTweet("");
+      setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
     }
   };
   return (
-    <Form>
+    <Form onSubmit={onSubmit}>
       <TextArea
+        required
         rows={5}
         maxLength={180}
         onChange={onChange}
         value={tweet}
         placeholder="What is happening?"
       />
+      {file && (
+        <ImgPreviewWrapper>
+          <ImgPreview src={file} alt="uploaded preview" />
+          <RemoveImageButton type="button" onClick={onRemoveImage}>
+            ×
+          </RemoveImageButton>
+        </ImgPreviewWrapper>
+      )}
+
       <AttachFileButton htmlFor="file">
         {file ? "Photo added✅" : "Add photo"}
       </AttachFileButton>
       <AttachFileInput
+        ref={fileInputRef}
         onChange={onFileChange}
         type="file"
         id="file"
