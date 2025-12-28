@@ -1,6 +1,5 @@
 import {
   collection,
-  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -38,18 +37,6 @@ export default function Timeline() {
         orderBy("createdAt", "desc"),
         limit(25)
       );
-      // const snapshot = await getDocs(tweetsQuery);
-      // const tweets = snapshot.docs.map((doc) => {
-      //   const { tweet, createdAt, userId, username, image } = doc.data();
-      //   return {
-      //     tweet,
-      //     createdAt,
-      //     userId,
-      //     username,
-      //     image,
-      //     id: doc.id,
-      //   };
-      // });
       unsubscribe = await onSnapshot(tweetsQuery, (snapshot) => {
         const tweets = snapshot.docs.map((doc) => {
           const { tweet, createdAt, userId, username, image } = doc.data();
@@ -64,7 +51,6 @@ export default function Timeline() {
         });
         setTweet(tweets);
       });
-      // setTweet(tweets);
     };
     fectchTweets();
     return () => {
