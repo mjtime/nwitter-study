@@ -3,17 +3,30 @@ import PostTweetForm from "../components/post-tweet-form";
 import Timeline from "../components/timeline";
 
 const Wrapper = styled.div`
-  display: grid;
-  gap: 50px;
-  overflow-y: auto;
-  grid-template-rows: 1fr 5fr;
+  display: flex;
+  flex-direction: column;
+`;
+
+const FormWrapper = styled.div`
+  position: sticky;
+  top: 0;
+  background-color: black;
+  padding: 6px 0;
+`;
+
+const TimelineWrapper = styled.div`
+  padding: 30px 0;
 `;
 
 export default function Home() {
   return (
     <Wrapper>
-      <PostTweetForm />
-      <Timeline />
+      <FormWrapper>
+        <PostTweetForm />
+      </FormWrapper>
+      <TimelineWrapper>
+        <Timeline />
+      </TimelineWrapper>
     </Wrapper>
   );
 }
