@@ -36,6 +36,7 @@ const CreatedAt = styled.span`
   color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   padding-bottom: 10px;
+  white-space: nowrap;
 `;
 
 const Username = styled.span`
@@ -104,6 +105,7 @@ export default function Tweet({
   userId,
   id,
   createdAt,
+  updatedAt,
 }: ITweet) {
   const user = auth.currentUser;
   const [isLoading, setLoading] = useState(false);
@@ -192,7 +194,11 @@ export default function Tweet({
         )}
       </ContentColumn>
       <VisualColumn>
-        <CreatedAt>{formattedDate}</CreatedAt>
+        <CreatedAt>
+          {formattedDate}
+          {updatedAt ? " (edited)" : ""}
+        </CreatedAt>
+
         {image ? <Photo src={image.value} /> : null}
         {user?.uid === userId ? (
           <ActionButtons $editMode={editMode}>
