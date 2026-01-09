@@ -5,52 +5,60 @@ import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 
 const Wrapper = styled.div`
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 20px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 15px;
+  gap: 10px;
 `;
 
-const ContentColumn = styled.div`
-  padding: 10px;
+const Header = styled.div`
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 `;
 
-const VisualColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  height: 100%;
-  padding: 0 10px 5px 0;
-`;
-
-const Photo = styled.img`
-  width: 100px;
-  height: 100px;
-  border-radius: 15px;
+const Username = styled.span`
+  font-weight: 600;
+  font-size: 16px;
 `;
 
 const CreatedAt = styled.span`
   color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
-  padding-bottom: 10px;
   white-space: nowrap;
 `;
 
-const Username = styled.span`
-  font-weight: 600;
-  font-size: 15px;
+const Main = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+`;
+
+const Content = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Payload = styled.p`
-  margin: 10px 0px 20px 0px;
   font-size: 18px;
+  line-height: 1.2;
+`;
+
+const PhotoContainer = styled.div`
+  position: relative;
+  flex-shrink: 0;
+`;
+const Photo = styled.img`
+  width: 100px;
+  height: 100px;
+  border-radius: 15px;
+  object-fit: cover;
 `;
 
 const TextArea = styled.textarea`
-  margin: 10px 0px;
   font-size: 18px;
   font-family: inherit;
   color: white;
@@ -68,20 +76,16 @@ const TextArea = styled.textarea`
 `;
 
 const TextLength = styled.p<{ $isLimit: boolean }>`
-  margin-left: auto;
+  align-self: flex-end;
   color: ${(props) => (props.$isLimit ? "#f08080" : "#ffffff80")};
   font-size: 12px;
 `;
 
-const ActionButtons = styled.div<{ $editMode: boolean }>`
+const ActionButtons = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 10px;
+  justify-content: flex-end;
   color: #ffffff80;
-
-  justify-content: ${(props) =>
-    props.$editMode ? "space-between" : "flex-start"};
 `;
 const Button = styled.button<{ $btnColor?: string }>`
   background-color: inherit;
@@ -174,52 +178,57 @@ export default function Tweet({
 
   return (
     <Wrapper>
-      <ContentColumn>
+      <Header>
         <Username>{username}</Username>
-        {editMode ? (
-          <>
-            <TextArea
-              value={editedTweet}
-              onChange={(e) => setEditedTweet(e.target.value)}
-              maxLength={180}
-              required
-              rows={5}
-            />
-            <TextLength $isLimit={editedTweet.length >= 180}>
-              {editedTweet.length}/180
-            </TextLength>
-          </>
-        ) : (
-          <Payload>{tweet}</Payload>
-        )}
-      </ContentColumn>
-      <VisualColumn>
         <CreatedAt>
           {formattedDate}
           {updatedAt ? " (edited)" : ""}
         </CreatedAt>
-
-        {image ? <Photo src={image.value} /> : null}
-        {user?.uid === userId ? (
-          <ActionButtons $editMode={editMode}>
-            {editMode ? (
-              <>
-                <Button onClick={onCancel}>Cancel</Button>
-                <Button onClick={onUpdate} $btnColor="#73e5ebff">
-                  {isLoading ? "Loading..." : "Update"}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={onEdit} $btnColor="#73e5ebff">
-                  Edit
-                </Button>
-                <Button onClick={onDelete}>Delete</Button>
-              </>
-            )}
-          </ActionButtons>
-        ) : null}
-      </VisualColumn>
+      </Header>
+      <Main>
+        <Content>
+          {editMode ? (
+            <>
+              <TextArea
+                value={editedTweet}
+                onChange={(e) => setEditedTweet(e.target.value)}
+                maxLength={180}
+                required
+                rows={5}
+              />
+              <TextLength $isLimit={editedTweet.length >= 180}>
+                {editedTweet.length}/180
+              </TextLength>
+            </>
+          ) : (
+            <Payload>{tweet}</Payload>
+          )}
+        </Content>
+        {image && (
+          <PhotoContainer>
+            <Photo src={image.value} />
+          </PhotoContainer>
+        )}
+      </Main>
+      {user?.uid === userId ? (
+        <ActionButtons>
+          {editMode ? (
+            <>
+              <Button onClick={onCancel}>Cancel</Button>
+              <Button onClick={onUpdate} $btnColor="#73e5ebff">
+                {isLoading ? "Loading..." : "Update"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={onEdit} $btnColor="#73e5ebff">
+                Edit
+              </Button>
+              <Button onClick={onDelete}>Delete</Button>
+            </>
+          )}
+        </ActionButtons>
+      ) : null}
     </Wrapper>
   );
 }
