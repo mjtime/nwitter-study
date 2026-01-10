@@ -47,9 +47,15 @@ const Payload = styled.p`
   line-height: 1.2;
 `;
 
+const PhotoWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+`;
+
 const PhotoContainer = styled.div`
   position: relative;
-  flex-shrink: 0;
 `;
 const Photo = styled.img`
   width: 100px;
@@ -57,7 +63,12 @@ const Photo = styled.img`
   border-radius: 15px;
   object-fit: cover;
 `;
-
+const PhotoEditButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+`;
 const TextArea = styled.textarea`
   font-size: 18px;
   font-family: inherit;
@@ -102,6 +113,23 @@ const Button = styled.button<{ $btnColor?: string }>`
   }
 `;
 
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+const LabelButton = styled.label`
+  background-color: inherit;
+  color: #ffffff80;
+  font-size: 11px;
+  padding: 3px 0px;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  &:hover {
+    color: #1d9bf0;
+  }
+`;
+
 export default function Tweet({
   username,
   image,
@@ -115,6 +143,11 @@ export default function Tweet({
   const [isLoading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedTweet, setEditedTweet] = useState(tweet);
+  const [photoFile, setPhotoFile] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(
+    image ? image.value : null
+  );
+  const MAX_FILE_SIZE = 300 * 1024;
 
   const onDelete = async () => {
     const ok = confirm("Are you sure you want to delete this tweets?");
@@ -130,6 +163,34 @@ export default function Tweet({
   const onEdit = () => {
     if (user?.uid !== userId) return;
     setEditMode(true);
+    setPhotoPreview(image ? image.value : null);
+    setPhotoFile(null);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length !== 1) return;
+
+    const selectedFile = files[0];
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      alert("300KB 이하의 이미지만 업로드 가능합니다.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setPhotoFile(result);
+      setPhotoPreview(result);
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
+  const onDeletePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const onUpdate = async () => {
@@ -142,20 +203,40 @@ export default function Tweet({
     )
       return;
 
-    if (editedTweet === tweet) {
-      setEditMode(false);
-      return;
-    }
-
     try {
       setLoading(true);
       const tweetRef = doc(db, "tweets", id);
-
-      await updateDoc(tweetRef, {
+      // 1. 업데이트할 데이터
+      const updateData: any = {
         tweet: editedTweet,
         updatedAt: Date.now(),
-      });
+      };
+
+      // 2. 사진 데이터 처리 로직
+      if (photoFile) {
+        // Case A: 새로운 사진 파일이 선택됨 (변경 또는 추가)
+        updateData.image = {
+          type: "base64",
+          value: photoFile,
+        };
+      } else if (!photoPreview && image) {
+        // Case B: 미리보기는 없는데 기존 이미지는 있었음 (삭제)
+        updateData.image = null;
+      }
+
+      // 3. 변경 사항 확인
+      // 텍스트와 사진 변경 사항이 없다면 업데이트를 하지 않고 종료
+      if (editedTweet === tweet && updateData.image === undefined) {
+        setEditMode(false);
+        setLoading(false);
+        return;
+      }
+
+      // 4. Firestore 업데이트 실행
+      await updateDoc(tweetRef, updateData);
+
       setEditMode(false);
+      setPhotoFile(null);
     } catch (error) {
       alert("Failed to update the tweet. Please try again.");
     } finally {
@@ -166,6 +247,8 @@ export default function Tweet({
   const onCancel = () => {
     setEditedTweet(tweet);
     setEditMode(false);
+    setPhotoFile(null);
+    setPhotoPreview(image ? image.value : null);
   };
 
   const date = new Date(createdAt);
@@ -204,17 +287,50 @@ export default function Tweet({
             <Payload>{tweet}</Payload>
           )}
         </Content>
-        {image && (
+        {editMode ? (
+          photoPreview ? (
+            <PhotoWrapper>
+              <PhotoContainer>
+                <Photo src={photoPreview} />
+              </PhotoContainer>
+              <PhotoEditButtons>
+                <LabelButton htmlFor={`file-change-${id}`}>Change</LabelButton>
+                <HiddenInput
+                  type="file"
+                  id={`file-change-${id}`}
+                  accept="image/*"
+                  onChange={onFileChange}
+                />
+                <Button onClick={onDeletePhoto} $btnColor="#f08080">
+                  Delete
+                </Button>
+              </PhotoEditButtons>
+            </PhotoWrapper>
+          ) : null
+        ) : image ? (
           <PhotoContainer>
             <Photo src={image.value} />
           </PhotoContainer>
-        )}
+        ) : null}
       </Main>
       {user?.uid === userId ? (
         <ActionButtons>
           {editMode ? (
             <>
               <Button onClick={onCancel}>Cancel</Button>
+              {!photoPreview && (
+                <>
+                  <LabelButton htmlFor={`file-add-${id}`}>
+                    Add Photo
+                  </LabelButton>
+                  <HiddenInput
+                    type="file"
+                    id={`file-add-${id}`}
+                    accept="image/*"
+                    onChange={onFileChange}
+                  />
+                </>
+              )}
               <Button onClick={onUpdate} $btnColor="#73e5ebff">
                 {isLoading ? "Loading..." : "Update"}
               </Button>
