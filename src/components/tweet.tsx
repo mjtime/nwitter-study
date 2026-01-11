@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import type { ITweet } from "./timeline";
 import { auth, db } from "../firebase";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
@@ -69,6 +69,11 @@ const PhotoEditButtons = styled.div`
   gap: 5px;
   align-items: center;
 `;
+
+const HiddenInput = styled.input`
+  display: none;
+`;
+
 const TextArea = styled.textarea`
   font-size: 18px;
   font-family: inherit;
@@ -92,42 +97,65 @@ const TextLength = styled.p<{ $isLimit: boolean }>`
   font-size: 12px;
 `;
 
-const ActionButtons = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   color: #ffffff80;
 `;
-const Button = styled.button<{ $btnColor?: string }>`
+
+// 공통 Button CSS 헬퍼 (Text / Outline)
+const textStyle = css<{ $btnColor?: string }>`
   background-color: inherit;
   color: #ffffff80;
   border: 0;
   font-size: 11px;
-  padding: 0px;
+  padding: 5px 0px;
   text-transform: uppercase;
   border-radius: 5px;
   cursor: pointer;
-
+  transition: color 0.2s;
   &:hover {
     color: ${(props) => props.$btnColor || "#f08080"};
   }
 `;
 
-const HiddenInput = styled.input`
-  display: none;
-`;
-
-const LabelButton = styled.label`
+const outlineStyle = css<{ $btnColor?: string }>`
+  display: block;
+  width: 100%;
   background-color: inherit;
-  color: #ffffff80;
+  border: 1px solid ${(props) => props.$btnColor || "#ffffff80"};
+  color: ${(props) => props.$btnColor || "#ffffff80"};
+  border-radius: 15px;
   font-size: 11px;
   padding: 3px 0px;
   text-align: center;
   text-transform: uppercase;
   cursor: pointer;
+  box-sizing: border-box;
+  transition: opacity 0.2s;
+  opacity: 0.8;
   &:hover {
-    color: #1d9bf0;
+    opacity: 1;
   }
+`;
+
+// 통합 버튼 컴포넌트 ($version에 따라 스타일 분기)
+const Button = styled.button<{
+  $version: "text" | "outline";
+  $btnColor?: string;
+}>`
+  ${(props) => (props.$version === "outline" ? outlineStyle : textStyle)}
+`;
+
+const LabelButton = styled.label<{
+  $version: "text" | "outline";
+  $btnColor?: string;
+}>`
+  ${(props) => (props.$version === "outline" ? outlineStyle : textStyle)}
+  /* label은 inline이 기본이므로 outline일 때만 block 처리 */
+  display: ${(props) =>
+    props.$version === "outline" ? "block" : "inline-block"};
 `;
 
 export default function Tweet({
@@ -294,14 +322,24 @@ export default function Tweet({
                 <Photo src={photoPreview} />
               </PhotoContainer>
               <PhotoEditButtons>
-                <LabelButton htmlFor={`file-change-${id}`}>Change</LabelButton>
+                <LabelButton
+                  htmlFor={`file-change-${id}`}
+                  $version="outline"
+                  $btnColor="#5da9ff"
+                >
+                  Change
+                </LabelButton>
                 <HiddenInput
                   type="file"
                   id={`file-change-${id}`}
                   accept="image/*"
                   onChange={onFileChange}
                 />
-                <Button onClick={onDeletePhoto} $btnColor="#f08080">
+                <Button
+                  onClick={onDeletePhoto}
+                  $version="outline"
+                  $btnColor="#f08080"
+                >
                   Delete
                 </Button>
               </PhotoEditButtons>
@@ -314,13 +352,19 @@ export default function Tweet({
         ) : null}
       </Main>
       {user?.uid === userId ? (
-        <ActionButtons>
+        <ButtonGroup>
           {editMode ? (
             <>
-              <Button onClick={onCancel}>Cancel</Button>
+              <Button onClick={onCancel} $version="text">
+                Cancel
+              </Button>
               {!photoPreview && (
                 <>
-                  <LabelButton htmlFor={`file-add-${id}`}>
+                  <LabelButton
+                    htmlFor={`file-add-${id}`}
+                    $version="text"
+                    $btnColor="#5da9ff"
+                  >
                     Add Photo
                   </LabelButton>
                   <HiddenInput
@@ -331,19 +375,21 @@ export default function Tweet({
                   />
                 </>
               )}
-              <Button onClick={onUpdate} $btnColor="#73e5ebff">
+              <Button onClick={onUpdate} $version="text" $btnColor="#5da9ff">
                 {isLoading ? "Loading..." : "Update"}
               </Button>
             </>
           ) : (
             <>
-              <Button onClick={onEdit} $btnColor="#73e5ebff">
+              <Button onClick={onEdit} $version="text" $btnColor="#5da9ff">
                 Edit
               </Button>
-              <Button onClick={onDelete}>Delete</Button>
+              <Button onClick={onDelete} $version="text">
+                Delete
+              </Button>
             </>
           )}
-        </ActionButtons>
+        </ButtonGroup>
       ) : null}
     </Wrapper>
   );
