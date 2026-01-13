@@ -1,7 +1,18 @@
 import styled from "styled-components";
 import { auth, db } from "../firebase";
 import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import Tweet from "../components/tweet";
 
 const Wrapper = styled.div`
   display: flex;
@@ -32,11 +43,28 @@ const AvatarInput = styled.input`
 const Name = styled.span`
   font-size: 22px;
 `;
+const Tweets = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export interface ITweet {
+  id: string;
+  image?: { type: "base64"; value: string };
+  tweet: string;
+  userId: string;
+  username: string;
+  createdAt: number;
+  updatedAt?: number;
+}
 
 export default function Profile() {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState<string | null>(null);
   const MAX_FILE_SIZE = 300 * 1024;
+  const [tweets, setTweets] = useState<ITweet[]>([]);
   useEffect(() => {
     const fetchAvatar = async () => {
       if (!user) return;
@@ -55,6 +83,35 @@ export default function Profile() {
 
     fetchAvatar();
   }, [user]);
+
+  const fetchTweets = async () => {
+    if (!user) return;
+    const tweetQuery = query(
+      collection(db, "tweets"),
+      where("userId", "==", user?.uid),
+      orderBy("createdAt", "desc"),
+      limit(25)
+    );
+    const snapshot = await getDocs(tweetQuery);
+    const tweets = snapshot.docs.map((doc) => {
+      const { tweet, createdAt, userId, username, image, updatedAt } =
+        doc.data();
+      return {
+        tweet,
+        createdAt,
+        userId,
+        username,
+        image,
+        updatedAt,
+        id: doc.id,
+      };
+    });
+    setTweets(tweets);
+  };
+
+  useEffect(() => {
+    fetchTweets();
+  }, []);
 
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -118,6 +175,11 @@ export default function Profile() {
         accept="image/*"
       />
       <Name>{user?.displayName ?? "Anonymous"}</Name>
+      <Tweets>
+        {tweets.map((tweet) => (
+          <Tweet key={tweet.id} {...tweet} />
+        ))}
+      </Tweets>
     </Wrapper>
   );
 }
