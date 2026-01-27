@@ -9,7 +9,7 @@ import {
   Input,
   Switcher,
   Title,
-  Wapper,
+  Wrapper,
 } from "../components/auth-components";
 import GithubButton from "../components/github-bth";
 
@@ -41,7 +41,7 @@ export default function CreateAccount() {
       const credentials = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       await updateProfile(credentials.user, { displayName: name });
       navigate("/");
@@ -55,7 +55,7 @@ export default function CreateAccount() {
   };
 
   return (
-    <Wapper>
+    <Wrapper>
       <Title>Join X</Title>
       <Form onSubmit={onSubmit}>
         <Input
@@ -92,6 +92,6 @@ export default function CreateAccount() {
         Already have an account? <Link to="/login">Log in &rarr;</Link>
       </Switcher>
       <GithubButton />
-    </Wapper>
+    </Wrapper>
   );
 }
