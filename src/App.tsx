@@ -9,9 +9,9 @@ import CreateAccount from "./routes/create-account";
 import { useEffect, useState } from "react";
 import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
-import ProtectedRoute from "./components/protected-route";
+import ProtectedRoute from "./routes/guards/protected-route";
 import AuthLayout from "./layouts/auth-layout";
-import PublicRoute from "./components/public-route";
+import PublicRoute from "./routes/guards/public-route";
 
 const router = createBrowserRouter([
   {
