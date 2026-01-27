@@ -11,6 +11,7 @@ import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
 import ProtectedRoute from "./components/protected-route";
 import AuthLayout from "./layouts/auth-layout";
+import PublicRoute from "./components/public-route";
 
 const router = createBrowserRouter([
   {
@@ -32,7 +33,11 @@ const router = createBrowserRouter([
     ],
   },
   {
-    element: <AuthLayout />,
+    element: (
+      <PublicRoute>
+        <AuthLayout />
+      </PublicRoute>
+    ),
     children: [
       { path: "/login", element: <Login /> },
       { path: "/create-account", element: <CreateAccount /> },
