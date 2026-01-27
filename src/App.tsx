@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { styled, createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
-import Layout from "./components/layout";
+import Layout from "./layouts/main-layout";
 import Home from "./routes/home";
 import Profile from "./routes/profile";
 import Login from "./routes/login";
@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
 import ProtectedRoute from "./components/protected-route";
+import AuthLayout from "./layouts/auth-layout";
 
 const router = createBrowserRouter([
   {
@@ -30,8 +31,13 @@ const router = createBrowserRouter([
       },
     ],
   },
-  { path: "/login", element: <Login /> },
-  { path: "/create-account", element: <CreateAccount /> },
+  {
+    element: <AuthLayout />,
+    children: [
+      { path: "/login", element: <Login /> },
+      { path: "/create-account", element: <CreateAccount /> },
+    ],
+  },
 ]);
 
 const GlobalStyles = createGlobalStyle`
