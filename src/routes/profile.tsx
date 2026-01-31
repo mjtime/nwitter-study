@@ -22,7 +22,25 @@ const Wrapper = styled.div`
   flex-direction: column;
   gap: 20px;
 `;
+
+const EditAvatarText = styled.span`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+`;
+
 const AvatarUpload = styled.label`
+  position: relative;
   width: 80px;
   overflow: hidden;
   height: 80px;
@@ -34,6 +52,10 @@ const AvatarUpload = styled.label`
   align-items: center;
   svg {
     width: 50px;
+  }
+
+  &:hover ${EditAvatarText} {
+    opacity: 1;
   }
 `;
 const AvatarImg = styled.img`
@@ -152,7 +174,7 @@ export default function Profile() {
       collection(db, "tweets"),
       where("userId", "==", user?.uid),
       orderBy("createdAt", "desc"),
-      limit(25)
+      limit(25),
     );
     const snapshot = await getDocs(tweetQuery);
     const tweets = snapshot.docs.map((doc) => {
@@ -198,7 +220,7 @@ export default function Profile() {
           {
             avatar: base64Data,
           },
-          { merge: true }
+          { merge: true },
         );
 
         setAvatar(base64Data);
@@ -247,7 +269,7 @@ export default function Profile() {
             return { ...tweet, username: newName };
           }
           return tweet;
-        })
+        }),
       );
 
       setEditMode(false);
@@ -276,6 +298,7 @@ export default function Profile() {
             />
           </svg>
         )}
+        <EditAvatarText>EDIT</EditAvatarText>
       </AvatarUpload>
       <AvatarInput
         onChange={onAvatarChange}
