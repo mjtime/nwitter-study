@@ -9,6 +9,9 @@ export default function PublicRoute({
   const user = auth.currentUser;
 
   if (user) {
+    if (!user.emailVerified) {
+      return <Navigate to="/verify-email" replace />;
+    }
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;

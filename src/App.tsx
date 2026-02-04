@@ -12,6 +12,7 @@ import { auth } from "./firebase";
 import ProtectedRoute from "./routes/guards/protected-route";
 import AuthLayout from "./layouts/auth-layout";
 import PublicRoute from "./routes/guards/public-route";
+import VerifyEmail from "./routes/verify-email";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
       { path: "/create-account", element: <CreateAccount /> },
     ],
   },
+  { path: "/verify-email", element: <VerifyEmail /> },
 ]);
 
 const GlobalStyles = createGlobalStyle`

@@ -10,5 +10,9 @@ export default function ProtectedRoute({
   if (user === null) {
     return <Navigate to="/login" />;
   }
+
+  if (!user.emailVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
   return children;
 }
