@@ -13,6 +13,7 @@ import ProtectedRoute from "./routes/guards/protected-route";
 import AuthLayout from "./layouts/auth-layout";
 import PublicRoute from "./routes/guards/public-route";
 import VerifyEmail from "./routes/verify-email";
+import ResetPassword from "./routes/reset-password";
 
 const router = createBrowserRouter([
   {
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/login", element: <Login /> },
       { path: "/create-account", element: <CreateAccount /> },
+      { path: "/reset-password", element: <ResetPassword /> },
     ],
   },
   { path: "/verify-email", element: <VerifyEmail /> },
