@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -12,6 +12,7 @@ import {
   Wrapper,
 } from "../components/auth-components";
 import GithubButton from "../components/github-btn";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,7 +36,28 @@ export default function Login() {
     if (isLoading || email === "" || password === "") return;
     try {
       setLoading(true);
-      await signInWithEmailAndPassword(auth, email, password);
+      const credentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const user = credentials.user;
+      try {
+        // 이메일 인증이 되었지만, DB에 반영되지 않은 경우 상태 동기화
+        if (user.emailVerified) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && !userDoc.data().isVerified) {
+            await updateDoc(doc(db, "users", user.uid), {
+              isVerified: true,
+              verifiedAt: Date.now(),
+            });
+          }
+        }
+      } catch (e) {
+        alert(
+          "인증 정보 업데이트 중 오류가 발생했습니다. 같은 오류가 반복되면 관리자에게 문의해주세요.",
+        );
+      }
       navigate("/");
     } catch (e) {
       if (e instanceof FirebaseError) {
