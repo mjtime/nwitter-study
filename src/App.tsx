@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { styled, createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
-import Layout from "./layouts/main-layout";
+import MainLayout from "./layouts/main-layout";
 import Home from "./routes/home";
 import Profile from "./routes/profile";
 import Login from "./routes/login";
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <ProtectedRoute>
-        <Layout />
+        <MainLayout />
       </ProtectedRoute>
     ),
     children: [
