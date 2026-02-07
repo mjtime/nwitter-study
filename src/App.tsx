@@ -14,6 +14,7 @@ import AuthLayout from "./layouts/auth-layout";
 import PublicRoute from "./routes/guards/public-route";
 import VerifyEmail from "./routes/verify-email";
 import ResetPassword from "./routes/reset-password";
+import Settings from "./routes/settings";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Profile />,
       },
+      { path: "settings", element: <Settings /> },
     ],
   },
   {
