@@ -70,6 +70,14 @@ export default function VerifyEmail() {
     return <Navigate to="/login" replace />;
   }
 
+  // 소셜 회원, 인증 회원인 경우
+  const isSocialUser = user?.providerData.some(
+    (p) => p.providerId !== "password",
+  );
+  if (isSocialUser || user.emailVerified) {
+    return <Navigate to="/" replace />;
+  }
+
   const onLogOut = async () => {
     const ok = confirm("Are you sure you want to log out?");
     if (ok) {

@@ -15,6 +15,7 @@ import PublicRoute from "./routes/guards/public-route";
 import VerifyEmail from "./routes/verify-email";
 import ResetPassword from "./routes/reset-password";
 import Settings from "./routes/settings";
+import EmailVerificationGuard from "./routes/guards/email-verification-guard";
 
 const router = createBrowserRouter([
   {
@@ -25,15 +26,21 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      {
-        path: "",
-        element: <Home />,
-      },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
+      { path: "verify-email", element: <VerifyEmail /> },
       { path: "settings", element: <Settings /> },
+      {
+        element: <EmailVerificationGuard />,
+        children: [
+          {
+            path: "",
+            element: <Home />,
+          },
+          {
+            path: "profile",
+            element: <Profile />,
+          },
+        ],
+      },
     ],
   },
   {
@@ -43,12 +50,11 @@ const router = createBrowserRouter([
       </PublicRoute>
     ),
     children: [
-      { path: "/login", element: <Login /> },
-      { path: "/create-account", element: <CreateAccount /> },
-      { path: "/reset-password", element: <ResetPassword /> },
+      { path: "login", element: <Login /> },
+      { path: "create-account", element: <CreateAccount /> },
+      { path: "reset-password", element: <ResetPassword /> },
     ],
   },
-  { path: "/verify-email", element: <VerifyEmail /> },
 ]);
 
 const GlobalStyles = createGlobalStyle`
