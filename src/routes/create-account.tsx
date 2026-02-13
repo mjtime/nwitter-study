@@ -51,9 +51,11 @@ export default function CreateAccount() {
       await updateProfile(credentials.user, { displayName: name });
 
       await setDoc(doc(db, "users", credentials.user.uid), {
-        email: email,
-        isVerified: false,
         createdAt: Date.now(),
+        email: email,
+        name: name,
+        provider: "password",
+        isVerified: false,
       });
 
       try {
