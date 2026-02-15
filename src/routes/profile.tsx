@@ -10,6 +10,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -252,6 +253,10 @@ export default function Profile() {
       setIsLoading(true);
       await updateProfile(user, { displayName: newName });
 
+      await updateDoc(doc(db, "users", user.uid), {
+        name: newName,
+      });
+
       const tweetsRef = collection(db, "tweets");
       const q = query(tweetsRef, where("userId", "==", user.uid));
       const snapshot = await getDocs(q);
@@ -274,6 +279,7 @@ export default function Profile() {
 
       setEditMode(false);
     } catch (e) {
+      alert("변경하지 못했습니다.");
     } finally {
       setIsLoading(false);
     }
