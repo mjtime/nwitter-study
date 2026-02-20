@@ -40,6 +40,12 @@ const TextArea = styled.textarea`
   }
 `;
 
+const TextLength = styled.p<{ $isLimit: boolean }>`
+  align-self: flex-end;
+  color: ${(props) => (props.$isLimit ? "#f08080" : "#ffffff80")};
+  font-size: 12px;
+`;
+
 const AttachFileButton = styled.label`
   padding: 10px 0px;
   color: #1d9bf0;
@@ -173,6 +179,7 @@ export default function PostTweetForm() {
         value={tweet}
         placeholder="What is happening?"
       />
+      <TextLength $isLimit={tweet.length >= 180}>{tweet.length}/180</TextLength>
       {file && (
         <ImgPreviewWrapper>
           <ImgPreview src={file} alt="uploaded preview" />
