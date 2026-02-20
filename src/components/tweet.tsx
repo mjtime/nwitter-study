@@ -3,6 +3,7 @@ import type { ITweet } from "./timeline";
 import { auth, db } from "../firebase";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Wrapper = styled.div`
   display: flex;
@@ -173,7 +174,7 @@ export default function Tweet({
   const [editedTweet, setEditedTweet] = useState(tweet);
   const [photoFile, setPhotoFile] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
-    image ? image.value : null
+    image ? image.value : null,
   );
   const MAX_FILE_SIZE = 300 * 1024;
 
@@ -182,8 +183,8 @@ export default function Tweet({
     if (!ok || user?.uid !== userId) return;
     try {
       await deleteDoc(doc(db, "tweets", id));
-    } catch (error) {
-      alert("Failed to delete the tweet. Please try again.");
+    } catch (e) {
+      alert(getFirebaseErrorMessage(e));
     } finally {
     }
   };
@@ -265,8 +266,8 @@ export default function Tweet({
 
       setEditMode(false);
       setPhotoFile(null);
-    } catch (error) {
-      alert("Failed to update the tweet. Please try again.");
+    } catch (e) {
+      alert(getFirebaseErrorMessage(e));
     } finally {
       setLoading(false);
     }

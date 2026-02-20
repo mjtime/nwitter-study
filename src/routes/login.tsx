@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
-import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import {
   Error,
@@ -13,6 +12,7 @@ import {
 } from "../components/auth-components";
 import GithubButton from "../components/github-btn";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -54,15 +54,11 @@ export default function Login() {
           }
         }
       } catch (e) {
-        alert(
-          "인증 정보 업데이트 중 오류가 발생했습니다. 같은 오류가 반복되면 관리자에게 문의해주세요.",
-        );
+        alert(getFirebaseErrorMessage(e));
       }
       navigate("/");
     } catch (e) {
-      if (e instanceof FirebaseError) {
-        setError(e.message);
-      }
+      setError(getFirebaseErrorMessage(e));
     } finally {
       setLoading(false);
     }

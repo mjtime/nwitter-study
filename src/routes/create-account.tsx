@@ -6,7 +6,6 @@ import {
 import { useState } from "react";
 import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
-import { FirebaseError } from "firebase/app";
 import {
   Error,
   Form,
@@ -17,6 +16,7 @@ import {
 } from "../components/auth-components";
 import GithubButton from "../components/github-btn";
 import { doc, setDoc } from "firebase/firestore";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 export default function CreateAccount() {
   const navigate = useNavigate();
@@ -61,14 +61,12 @@ export default function CreateAccount() {
       try {
         await sendEmailVerification(credentials.user);
       } catch (e) {
-        alert("인증 이메일 발송에 실패했습니다.");
+        alert(`${getFirebaseErrorMessage(e)}\n인증 메일 발송에 실패했습니다.`);
       }
 
       navigate("/");
     } catch (e) {
-      if (e instanceof FirebaseError) {
-        setError(e.message);
-      }
+      setError(getFirebaseErrorMessage(e));
     } finally {
       setLoading(false);
     }

@@ -19,6 +19,7 @@ import {
   reauthenticateWithPopup,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Overlay = styled.div`
   position: fixed;
@@ -156,15 +157,8 @@ export default function DeleteAccountModal({
 
       alert("계정이 삭제되었습니다. 이용해주셔서 감사합니다.");
       navigate("/login");
-    } catch (error: any) {
-      if (error.code === "auth/invalid-login-credentials") {
-        setPasswordError("비밀번호 오류");
-      }
-      // github 팝업 로그인중 사용자가 창을 닫는 경우
-      else if (error.code === "auth/popup-closed-by-user") return;
-      else {
-        alert("탈퇴 처리 중 오류가 발생했습니다.");
-      }
+    } catch (e) {
+      setPasswordError(getFirebaseErrorMessage(e));
     } finally {
       setLoading(false);
     }

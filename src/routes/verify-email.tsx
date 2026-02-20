@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { sendEmailVerification } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Content = styled.div`
   margin-top: 60px;
@@ -93,7 +94,7 @@ export default function VerifyEmail() {
         verifiedAt: Date.now(),
       });
     } catch (e) {
-      alert("인증 정보 동기화에 실패했습니다. 페이지를 새로고침 해주세요.");
+      alert(getFirebaseErrorMessage(e));
     }
   };
 
@@ -123,7 +124,7 @@ export default function VerifyEmail() {
         setError("인증이 완료되지 않았습니다. 메일함을 확인해주세요.");
       }
     } catch (e) {
-      alert("상태를 업데이트하는 중 오류가 발생했습니다.");
+      alert(getFirebaseErrorMessage(e));
     }
     setverifyLoading(false);
   };
@@ -149,19 +150,8 @@ export default function VerifyEmail() {
     try {
       await sendEmailVerification(user);
       alert("인증 메일이 재발송되었습니다.");
-    } catch (e: any) {
-      switch (e.code) {
-        case "auth/too-many-requests":
-          alert(
-            "짧은 시간에 너무 많은 요청이 있었습니다. 1~2분 후 다시 시도해주세요.",
-          );
-          break;
-        case "auth/user-token-expired":
-          alert("세션이 만료되었습니다. 다시 로그인 후 시도해주세요.");
-          break;
-        default:
-          alert("메일 발송 중 알 수 없는 오류가 발생했습니다.");
-      }
+    } catch (e) {
+      alert(getFirebaseErrorMessage(e));
     } finally {
       setResendLoading(false);
     }

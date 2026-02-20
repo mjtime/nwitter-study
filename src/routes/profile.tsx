@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import Tweet from "../components/tweet";
 import { updateProfile } from "firebase/auth";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Wrapper = styled.div`
   display: flex;
@@ -162,7 +163,7 @@ export default function Profile() {
           setAvatar(docSnap.data().avatar);
         }
       } catch (e) {
-        alert("Failed to loading the avatar. Please try again.");
+        alert(getFirebaseErrorMessage(e));
       }
     };
 
@@ -227,7 +228,7 @@ export default function Profile() {
         setAvatar(base64Data);
       } catch (error) {
         console.log(error);
-        alert("Failed to update the avatar. Please try again.");
+        alert(getFirebaseErrorMessage(e));
       }
     };
 
@@ -279,7 +280,7 @@ export default function Profile() {
 
       setEditMode(false);
     } catch (e) {
-      alert("변경하지 못했습니다.");
+      alert(getFirebaseErrorMessage(e));
     } finally {
       setIsLoading(false);
     }

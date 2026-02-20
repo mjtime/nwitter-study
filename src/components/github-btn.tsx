@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Button = styled.span`
   background-color: white;
@@ -46,8 +47,8 @@ export default function GithubButton() {
         });
       }
       navigate("/");
-    } catch (error) {
-      alert("로그인에 실패했습니다.");
+    } catch (e) {
+      alert(getFirebaseErrorMessage(e));
     }
   };
   return (

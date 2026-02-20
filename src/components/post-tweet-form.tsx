@@ -2,6 +2,7 @@ import { addDoc, collection } from "firebase/firestore";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { auth, db } from "../firebase";
+import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Form = styled.form`
   display: flex;
@@ -18,8 +19,18 @@ const TextArea = styled.textarea`
   background-color: black;
   width: 100%;
   resize: none;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
   &::placeholder {
     font-size: 16px;
   }
@@ -147,7 +158,7 @@ export default function PostTweetForm() {
         fileInputRef.current.value = "";
       }
     } catch (e) {
-      console.log(e);
+      alert(getFirebaseErrorMessage(e));
     } finally {
       setLoading(false);
     }
