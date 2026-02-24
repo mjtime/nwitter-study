@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   setDoc,
@@ -15,7 +16,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import Tweet from "../components/tweet";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, type Unsubscribe } from "firebase/auth";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
 const Wrapper = styled.div`
@@ -141,6 +142,7 @@ export interface ITweet {
   username: string;
   createdAt: number;
   updatedAt?: number;
+  likes: string[];
 }
 
 export default function Profile() {
@@ -170,34 +172,51 @@ export default function Profile() {
     fetchAvatar();
   }, [user]);
 
-  const fetchTweets = async () => {
-    if (!user) return;
-    const tweetQuery = query(
-      collection(db, "tweets"),
-      where("userId", "==", user?.uid),
-      orderBy("createdAt", "desc"),
-      limit(25),
-    );
-    const snapshot = await getDocs(tweetQuery);
-    const tweets = snapshot.docs.map((doc) => {
-      const { tweet, createdAt, userId, username, image, updatedAt } =
-        doc.data();
-      return {
-        tweet,
-        createdAt,
-        userId,
-        username,
-        image,
-        updatedAt,
-        id: doc.id,
-      };
-    });
-    setTweets(tweets);
-  };
-
   useEffect(() => {
+    let unsubscribe: Unsubscribe | null = null;
+
+    const fetchTweets = async () => {
+      if (!user) return;
+
+      const tweetQuery = query(
+        collection(db, "tweets"),
+        where("userId", "==", user?.uid),
+        orderBy("createdAt", "desc"),
+        limit(25),
+      );
+
+      unsubscribe = onSnapshot(tweetQuery, (snapshot) => {
+        const tweetsData = snapshot.docs.map((doc) => {
+          const {
+            tweet,
+            createdAt,
+            userId,
+            username,
+            image,
+            updatedAt,
+            likes,
+          } = doc.data();
+          return {
+            tweet,
+            createdAt,
+            userId,
+            username,
+            image,
+            updatedAt,
+            likes: likes || [],
+            id: doc.id,
+          };
+        });
+        setTweets(tweetsData);
+      });
+    };
+
     fetchTweets();
-  }, []);
+
+    return () => {
+      unsubscribe && unsubscribe();
+    };
+  }, [user]);
 
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

@@ -1,7 +1,13 @@
 import styled, { css } from "styled-components";
 import type { ITweet } from "./timeline";
 import { auth, db } from "../firebase";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { useState } from "react";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 
@@ -100,9 +106,21 @@ const TextLength = styled.p<{ $isLimit: boolean }>`
 
 const ButtonGroup = styled.div`
   display: flex;
+  justify-content: space-between;
+  color: #ffffff80;
+`;
+
+const ActionGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+`;
+
+const ControlGroup = styled.div`
+  display: flex;
   gap: 10px;
   justify-content: flex-end;
-  color: #ffffff80;
+  margin-left: auto;
 `;
 
 // 공통 Button CSS 헬퍼 (Text / Outline)
@@ -159,6 +177,20 @@ const LabelButton = styled.label<{
     props.$version === "outline" ? "block" : "inline-block"};
 `;
 
+const LikeButton = styled.div<{ $isLiked: boolean }>`
+  cursor: pointer;
+
+  display: flex;
+  svg {
+    width: 20px;
+    fill: ${(props) => (props.$isLiked ? "#f08080" : "none")};
+    stroke: ${(props) => (props.$isLiked ? "#f08080" : "currentColor")};
+  }
+`;
+const LikeCount = styled.span`
+  font-size: 16px;
+`;
+
 export default function Tweet({
   username,
   image,
@@ -167,6 +199,7 @@ export default function Tweet({
   id,
   createdAt,
   updatedAt,
+  likes = [],
 }: ITweet) {
   const user = auth.currentUser;
   const [isLoading, setLoading] = useState(false);
@@ -176,6 +209,8 @@ export default function Tweet({
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     image ? image.value : null,
   );
+  const isLiked = user ? likes.includes(user.uid) : false;
+  const likeCount = likes.length;
   const MAX_FILE_SIZE = 300 * 1024;
 
   const onDelete = async () => {
@@ -280,6 +315,21 @@ export default function Tweet({
     setPhotoPreview(image ? image.value : null);
   };
 
+  const onLike = async () => {
+    if (!user) return;
+    const tweetRef = doc(db, "tweets", id);
+
+    try {
+      if (isLiked) {
+        await updateDoc(tweetRef, { likes: arrayRemove(user.uid) });
+      } else {
+        await updateDoc(tweetRef, { likes: arrayUnion(user.uid) });
+      }
+    } catch (e) {
+      alert(getFirebaseErrorMessage(e));
+    }
+  };
+
   const date = new Date(createdAt);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -352,46 +402,69 @@ export default function Tweet({
           </PhotoContainer>
         ) : null}
       </Main>
-      {user?.uid === userId ? (
-        <ButtonGroup>
-          {editMode ? (
-            <>
-              <Button onClick={onCancel} $version="text">
-                Cancel
-              </Button>
-              {!photoPreview && (
-                <>
-                  <LabelButton
-                    htmlFor={`file-add-${id}`}
-                    $version="text"
-                    $btnColor="#5da9ff"
-                  >
-                    Add Photo
-                  </LabelButton>
-                  <HiddenInput
-                    type="file"
-                    id={`file-add-${id}`}
-                    accept="image/*"
-                    onChange={onFileChange}
-                  />
-                </>
-              )}
-              <Button onClick={onUpdate} $version="text" $btnColor="#5da9ff">
-                {isLoading ? "Loading..." : "Update"}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={onEdit} $version="text" $btnColor="#5da9ff">
-                Edit
-              </Button>
-              <Button onClick={onDelete} $version="text">
-                Delete
-              </Button>
-            </>
-          )}
-        </ButtonGroup>
-      ) : null}
+      <ButtonGroup>
+        {!editMode && (
+          <ActionGroup>
+            <LikeButton onClick={onLike} $isLiked={isLiked}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                />
+              </svg>
+            </LikeButton>
+            <LikeCount>{likeCount}</LikeCount>
+          </ActionGroup>
+        )}
+        {user?.uid === userId ? (
+          <ControlGroup>
+            {editMode ? (
+              <>
+                <Button onClick={onCancel} $version="text">
+                  Cancel
+                </Button>
+                {!photoPreview && (
+                  <>
+                    <LabelButton
+                      htmlFor={`file-add-${id}`}
+                      $version="text"
+                      $btnColor="#5da9ff"
+                    >
+                      Add Photo
+                    </LabelButton>
+                    <HiddenInput
+                      type="file"
+                      id={`file-add-${id}`}
+                      accept="image/*"
+                      onChange={onFileChange}
+                    />
+                  </>
+                )}
+                <Button onClick={onUpdate} $version="text" $btnColor="#5da9ff">
+                  {isLoading ? "Loading..." : "Update"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={onEdit} $version="text" $btnColor="#5da9ff">
+                  Edit
+                </Button>
+                <Button onClick={onDelete} $version="text">
+                  Delete
+                </Button>
+              </>
+            )}
+          </ControlGroup>
+        ) : null}
+      </ButtonGroup>
     </Wrapper>
   );
 }

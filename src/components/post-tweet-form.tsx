@@ -150,6 +150,7 @@ export default function PostTweetForm() {
         createdAt: Date.now(),
         username: user.displayName || "Anonymous",
         userId: user.uid,
+        likes: [],
 
         ...(file && {
           image: {
