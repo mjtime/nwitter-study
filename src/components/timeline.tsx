@@ -1,15 +1,6 @@
-import {
-  collection,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-} from "firebase/firestore";
-import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { db } from "../firebase";
 import Tweet from "./tweet";
-import type { Unsubscribe } from "firebase/auth";
+import { useTweets } from "../hooks/use-tweets";
 
 export interface ITweet {
   id: string;
@@ -29,46 +20,7 @@ const Wrapper = styled.div`
 `;
 
 export default function Timeline() {
-  const [tweets, setTweet] = useState<ITweet[]>([]);
-
-  useEffect(() => {
-    let unsubscribe: Unsubscribe | null = null;
-    const fectchTweets = async () => {
-      const tweetsQuery = query(
-        collection(db, "tweets"),
-        orderBy("createdAt", "desc"),
-        limit(25),
-      );
-      unsubscribe = await onSnapshot(tweetsQuery, (snapshot) => {
-        const tweets = snapshot.docs.map((doc) => {
-          const {
-            tweet,
-            createdAt,
-            userId,
-            username,
-            image,
-            updatedAt,
-            likes,
-          } = doc.data();
-          return {
-            tweet,
-            createdAt,
-            userId,
-            username,
-            image,
-            updatedAt,
-            likes: likes || [],
-            id: doc.id,
-          };
-        });
-        setTweet(tweets);
-      });
-    };
-    fectchTweets();
-    return () => {
-      unsubscribe && unsubscribe();
-    };
-  }, []);
+  const tweets = useTweets("all");
   return (
     <Wrapper>
       {tweets.map((tweet) => (

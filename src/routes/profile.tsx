@@ -6,9 +6,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  limit,
-  onSnapshot,
-  orderBy,
   query,
   setDoc,
   updateDoc,
@@ -16,8 +13,9 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import Tweet from "../components/tweet";
-import { updateProfile, type Unsubscribe } from "firebase/auth";
+import { updateProfile } from "firebase/auth";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
+import { useTweets } from "../hooks/use-tweets";
 
 const Wrapper = styled.div`
   display: flex;
@@ -152,7 +150,8 @@ export default function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [newName, setNewName] = useState(user?.displayName ?? "");
   const MAX_FILE_SIZE = 300 * 1024;
-  const [tweets, setTweets] = useState<ITweet[]>([]);
+  const tweets = useTweets("mine", user?.uid);
+
   useEffect(() => {
     const fetchAvatar = async () => {
       if (!user) return;
@@ -170,52 +169,6 @@ export default function Profile() {
     };
 
     fetchAvatar();
-  }, [user]);
-
-  useEffect(() => {
-    let unsubscribe: Unsubscribe | null = null;
-
-    const fetchTweets = async () => {
-      if (!user) return;
-
-      const tweetQuery = query(
-        collection(db, "tweets"),
-        where("userId", "==", user?.uid),
-        orderBy("createdAt", "desc"),
-        limit(25),
-      );
-
-      unsubscribe = onSnapshot(tweetQuery, (snapshot) => {
-        const tweetsData = snapshot.docs.map((doc) => {
-          const {
-            tweet,
-            createdAt,
-            userId,
-            username,
-            image,
-            updatedAt,
-            likes,
-          } = doc.data();
-          return {
-            tweet,
-            createdAt,
-            userId,
-            username,
-            image,
-            updatedAt,
-            likes: likes || [],
-            id: doc.id,
-          };
-        });
-        setTweets(tweetsData);
-      });
-    };
-
-    fetchTweets();
-
-    return () => {
-      unsubscribe && unsubscribe();
-    };
   }, [user]);
 
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,15 +240,6 @@ export default function Profile() {
       });
 
       await batch.commit();
-
-      setTweets((prev) =>
-        prev.map((tweet) => {
-          if (tweet.userId === user.uid) {
-            return { ...tweet, username: newName };
-          }
-          return tweet;
-        }),
-      );
 
       setEditMode(false);
     } catch (e) {
