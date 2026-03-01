@@ -12,6 +12,7 @@ const FormWrapper = styled.div`
   top: 0;
   background-color: black;
   padding: 6px 0;
+  z-index: 10;
 `;
 
 const TimelineWrapper = styled.div`
