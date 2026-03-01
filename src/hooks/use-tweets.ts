@@ -7,17 +7,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-
-export interface ITweet {
-  id: string;
-  image?: { type: "base64"; value: string };
-  tweet: string;
-  userId: string;
-  username: string;
-  createdAt: number;
-  updatedAt?: number;
-  likes: string[];
-}
+import type { ITweet } from "../types/tweet.types";
 
 export function useTweets(mode: "all" | "mine" | "likes", userId?: string) {
   const [tweets, setTweets] = useState<ITweet[]>([]);

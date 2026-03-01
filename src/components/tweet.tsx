@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import type { ITweet } from "./timeline";
+import type { ITweet } from "../types/tweet.types";
 import { auth, db } from "../firebase";
 import {
   arrayRemove,
