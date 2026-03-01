@@ -148,6 +148,12 @@ const Tweets = styled.div`
   gap: 10px;
 `;
 
+const LoadingText = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 50px 0;
+`;
+
 export default function Profile() {
   const user = auth.currentUser;
   const [isLoading, setIsLoading] = useState(false);
@@ -156,7 +162,7 @@ export default function Profile() {
   const [newName, setNewName] = useState(user?.displayName ?? "");
   const MAX_FILE_SIZE = 300 * 1024;
   const [mode, setMode] = useState<"mine" | "likes">("mine");
-  const tweets = useTweets(mode, user?.uid);
+  const { tweets, isLoading: isTweetsLoading } = useTweets(mode, user?.uid);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -369,9 +375,11 @@ export default function Profile() {
         </TabButton>
       </TabWrapper>
       <Tweets>
-        {tweets.map((tweet) => (
-          <Tweet key={tweet.id} {...tweet} />
-        ))}
+        {isTweetsLoading ? (
+          <LoadingText>Loading Tweets...</LoadingText>
+        ) : (
+          tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
+        )}
       </Tweets>
     </Wrapper>
   );

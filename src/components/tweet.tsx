@@ -14,6 +14,7 @@ import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
+  width: 100%;
   padding: 15px 20px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 15px;
