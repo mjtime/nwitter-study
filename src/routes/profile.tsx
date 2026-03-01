@@ -83,6 +83,22 @@ const Name = styled.span`
   font-size: 22px;
 `;
 
+const TabWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+`;
+const TabButton = styled.button<{ $active: boolean }>`
+  border: none;
+  background-color: transparent;
+  border-bottom: 1px solid
+    ${(props) => (props.$active ? "white" : "transparent")};
+  color: ${(props) => (props.$active ? "white" : "#FFFFFF80")};
+  font-size: 14px;
+  cursor: pointer;
+`;
+
 const BaseButton = styled.div`
   position: absolute;
   cursor: pointer;
@@ -139,7 +155,8 @@ export default function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [newName, setNewName] = useState(user?.displayName ?? "");
   const MAX_FILE_SIZE = 300 * 1024;
-  const tweets = useTweets("mine", user?.uid);
+  const [mode, setMode] = useState<"mine" | "likes">("mine");
+  const tweets = useTweets(mode, user?.uid);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -238,6 +255,12 @@ export default function Profile() {
     }
   };
 
+  const handleTabClick = (newMode: "mine" | "likes") => {
+    if (mode === newMode) return;
+    setMode(newMode);
+  };
+
+  console.log(mode);
   return (
     <Wrapper>
       <AvatarUpload htmlFor="avatar">
@@ -331,6 +354,20 @@ export default function Profile() {
           )}
         </NameContainer>
       </NameWrapper>
+      <TabWrapper>
+        <TabButton
+          $active={mode === "mine"}
+          onClick={() => handleTabClick("mine")}
+        >
+          Mine
+        </TabButton>
+        <TabButton
+          $active={mode === "likes"}
+          onClick={() => handleTabClick("likes")}
+        >
+          Likes
+        </TabButton>
+      </TabWrapper>
       <Tweets>
         {tweets.map((tweet) => (
           <Tweet key={tweet.id} {...tweet} />
