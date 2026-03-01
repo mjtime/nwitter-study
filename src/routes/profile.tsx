@@ -94,7 +94,7 @@ const TabButton = styled.button<{ $active: boolean }>`
   background-color: transparent;
   border-bottom: 1px solid
     ${(props) => (props.$active ? "white" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "#FFFFFF80")};
+  color: ${(props) => (props.$active ? "white" : "#808080")};
   font-size: 14px;
   cursor: pointer;
 `;
@@ -138,7 +138,7 @@ const Input = styled.input`
 
 const TextLength = styled.span`
   font-size: 12px;
-  color: #ffffff80;
+  color: #808080;
 `;
 
 const Tweets = styled.div`
@@ -152,6 +152,13 @@ const LoadingText = styled.div`
   display: flex;
   justify-content: center;
   padding: 50px 0;
+`;
+
+const NoTweets = styled.span`
+  text-align: center;
+  margin-top: 50px;
+  color: #808080;
+  font-size: 16px;
 `;
 
 export default function Profile() {
@@ -376,7 +383,13 @@ export default function Profile() {
       </TabWrapper>
       <Tweets>
         {isTweetsLoading ? (
-          <LoadingText>Loading Tweets...</LoadingText>
+          <LoadingText>Loading...</LoadingText>
+        ) : tweets.length === 0 ? (
+          <NoTweets>
+            {mode === "mine"
+              ? "We're curious about your stories. 🤔"
+              : "How about filling this space with your taste? 🥰"}
+          </NoTweets>
         ) : (
           tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
         )}

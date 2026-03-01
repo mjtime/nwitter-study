@@ -9,13 +9,24 @@ const Wrapper = styled.div`
   align-items: center;
 `;
 
+const NoTweets = styled.span`
+  margin-top: 50px;
+  color: #808080;
+  font-size: 16px;
+`;
+
 export default function Timeline() {
   const { tweets, isLoading } = useTweets("all");
+
   return (
     <Wrapper>
-      {isLoading
-        ? "Loading Tweets..."
-        : tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)}
+      {isLoading ? (
+        "Loading..."
+      ) : tweets.length === 0 ? (
+        <NoTweets>There are no posts yet. It's still quiet here. </NoTweets>
+      ) : (
+        tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
+      )}
     </Wrapper>
   );
 }
