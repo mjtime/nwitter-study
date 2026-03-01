@@ -13,6 +13,7 @@ const FormWrapper = styled.div`
   background-color: black;
   padding: 6px 0;
   z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 `;
 
 const TimelineWrapper = styled.div`
