@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import PostTweetForm from "../components/post-tweet-form";
 import Timeline from "../components/timeline";
+import { useTweets } from "../hooks/use-tweets";
 
 const Wrapper = styled.div`
   display: flex;
@@ -21,13 +22,31 @@ const TimelineWrapper = styled.div`
 `;
 
 export default function Home() {
+  const {
+    tweets,
+    addTweet,
+    removeTweet,
+    updateTweetLikes,
+    isLoading,
+    hasMore,
+    fetchNextPage,
+    updateTweet,
+  } = useTweets("all");
   return (
     <Wrapper>
       <FormWrapper>
-        <PostTweetForm />
+        <PostTweetForm onPostSuccess={addTweet} />
       </FormWrapper>
       <TimelineWrapper>
-        <Timeline />
+        <Timeline
+          tweets={tweets}
+          isLoading={isLoading}
+          hasMore={hasMore}
+          fetchNextPage={fetchNextPage}
+          onDeleteSuccess={removeTweet}
+          onLikeSuccess={updateTweetLikes}
+          onEditSuccess={updateTweet}
+        />
       </TimelineWrapper>
     </Wrapper>
   );

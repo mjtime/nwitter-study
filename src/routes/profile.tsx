@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { auth, db } from "../firebase";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   collection,
   doc,
@@ -161,6 +161,11 @@ const NoTweets = styled.span`
   font-size: 16px;
 `;
 
+const ObserverTarget = styled.div`
+  height: 20px;
+  background: transparent;
+`;
+
 export default function Profile() {
   const user = auth.currentUser;
   const [isLoading, setIsLoading] = useState(false);
@@ -169,7 +174,17 @@ export default function Profile() {
   const [newName, setNewName] = useState(user?.displayName ?? "");
   const MAX_FILE_SIZE = 300 * 1024;
   const [mode, setMode] = useState<"mine" | "likes">("mine");
-  const { tweets, isLoading: isTweetsLoading } = useTweets(mode, user?.uid);
+  const {
+    tweets,
+    isLoading: isTweetsLoading,
+    hasMore,
+    fetchNextPage,
+    removeTweet,
+    updateTweetLikes,
+    updateTweet,
+  } = useTweets(mode, user?.uid);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -189,6 +204,25 @@ export default function Profile() {
 
     fetchAvatar();
   }, [user]);
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          fetchNextPage();
+        }
+      },
+      {
+        threshold: 0.1,
+      },
+    );
+
+    if (targetRef.current) {
+      observerRef.current.observe(targetRef.current);
+    }
+  }, [hasMore, isLoading, fetchNextPage]);
 
   const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -217,8 +251,7 @@ export default function Profile() {
         );
 
         setAvatar(base64Data);
-      } catch (error) {
-        console.log(error);
+      } catch (e) {
         alert(getFirebaseErrorMessage(e));
       }
     };
@@ -273,7 +306,6 @@ export default function Profile() {
     setMode(newMode);
   };
 
-  console.log(mode);
   return (
     <Wrapper>
       <AvatarUpload htmlFor="avatar">
@@ -369,12 +401,14 @@ export default function Profile() {
       </NameWrapper>
       <TabWrapper>
         <TabButton
+          type="button"
           $active={mode === "mine"}
           onClick={() => handleTabClick("mine")}
         >
           Mine
         </TabButton>
         <TabButton
+          type="button"
           $active={mode === "likes"}
           onClick={() => handleTabClick("likes")}
         >
@@ -382,16 +416,34 @@ export default function Profile() {
         </TabButton>
       </TabWrapper>
       <Tweets>
-        {isTweetsLoading ? (
+        {isTweetsLoading && tweets.length === 0 ? (
           <LoadingText>Loading...</LoadingText>
-        ) : tweets.length === 0 ? (
-          <NoTweets>
-            {mode === "mine"
-              ? "We're curious about your stories. 🤔"
-              : "How about filling this space with your taste? 🥰"}
-          </NoTweets>
         ) : (
-          tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
+          <>
+            {tweets.length === 0 ? (
+              <NoTweets>
+                {mode === "mine"
+                  ? "We're curious about your stories. 🤔"
+                  : "How about filling this space with your taste? 🥰"}
+              </NoTweets>
+            ) : (
+              tweets.map((tweet) => (
+                <Tweet
+                  key={tweet.id}
+                  {...tweet}
+                  onDeleteSuccess={removeTweet}
+                  onLikeSuccess={updateTweetLikes}
+                  onEditSuccess={updateTweet}
+                />
+              ))
+            )}
+          </>
+        )}
+
+        {hasMore && (
+          <ObserverTarget ref={targetRef}>
+            {isTweetsLoading ? "Loading more..." : ""}
+          </ObserverTarget>
         )}
       </Tweets>
     </Wrapper>

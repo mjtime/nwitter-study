@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { auth, db } from "../firebase";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
+import type { ITweet } from "../types/tweet.types";
 
 const Form = styled.form`
   display: flex;
@@ -101,7 +102,11 @@ const ImgPreview = styled.img`
   border: 1px solid #333;
 `;
 
-export default function PostTweetForm() {
+interface PostTweetFormProps {
+  onPostSuccess: (newTweet: ITweet) => void;
+}
+
+export default function PostTweetForm({ onPostSuccess }: PostTweetFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [tweet, setTweet] = useState("");
   const [file, setFile] = useState<string | null>(null);
@@ -145,7 +150,7 @@ export default function PostTweetForm() {
 
     try {
       setLoading(true);
-      await addDoc(collection(db, "tweets"), {
+      const newTweetData = {
         tweet,
         createdAt: Date.now(),
         username: user.displayName || "Anonymous",
@@ -158,7 +163,15 @@ export default function PostTweetForm() {
             value: file,
           },
         }),
-      });
+      };
+
+      const docRef = await addDoc(collection(db, "tweets"), newTweetData);
+
+      onPostSuccess({
+        id: docRef.id,
+        ...newTweetData,
+      } as ITweet);
+
       setTweet("");
       setFile(null);
       if (fileInputRef.current) {

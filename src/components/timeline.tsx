@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import Tweet from "./tweet";
-import { useTweets } from "../hooks/use-tweets";
+import { useEffect, useRef } from "react";
+import type { ITweet } from "../types/tweet.types";
 
 const Wrapper = styled.div`
   display: flex;
@@ -15,17 +16,75 @@ const NoTweets = styled.span`
   font-size: 16px;
 `;
 
-export default function Timeline() {
-  const { tweets, isLoading } = useTweets("all");
+const ObserverTarget = styled.div`
+  height: 20px;
+  background: transparent;
+`;
+
+interface TimelineProps {
+  tweets: ITweet[];
+  isLoading: boolean;
+  hasMore: boolean;
+  fetchNextPage: () => void;
+  onDeleteSuccess: (id: string) => void;
+  onLikeSuccess: (id: string, newLikes: string[]) => void;
+  onEditSuccess: (id: string, payload: Partial<ITweet>) => void;
+}
+
+export default function Timeline({
+  tweets,
+  isLoading,
+  hasMore,
+  fetchNextPage,
+  onDeleteSuccess,
+  onLikeSuccess,
+  onEditSuccess,
+}: TimelineProps) {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (!entry.isIntersecting) return;
+        if (isLoading) return;
+        if (!hasMore) return;
+
+        fetchNextPage();
+      },
+      {
+        threshold: 0.1,
+      },
+    );
+
+    if (targetRef.current) {
+      observerRef.current.observe(targetRef.current);
+    }
+  }, [hasMore, isLoading, fetchNextPage]);
 
   return (
     <Wrapper>
-      {isLoading ? (
-        "Loading..."
-      ) : tweets.length === 0 ? (
+      {tweets.length === 0 ? (
         <NoTweets>There are no posts yet. It's still quiet here. </NoTweets>
       ) : (
-        tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
+        tweets.map((tweet) => (
+          <Tweet
+            key={tweet.id}
+            {...tweet}
+            onDeleteSuccess={onDeleteSuccess}
+            onLikeSuccess={onLikeSuccess}
+            onEditSuccess={onEditSuccess}
+          />
+        ))
+      )}
+      {hasMore && (
+        <ObserverTarget ref={targetRef}>
+          {isLoading ? "Loading more..." : ""}
+        </ObserverTarget>
       )}
     </Wrapper>
   );

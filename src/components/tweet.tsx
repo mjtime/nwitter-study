@@ -192,6 +192,12 @@ const LikeCount = styled.span`
   font-size: 16px;
 `;
 
+interface TweetProps extends ITweet {
+  onDeleteSuccess: (id: string) => void;
+  onLikeSuccess: (id: string, newLikes: string[]) => void;
+  onEditSuccess: (id: string, payload: Partial<ITweet>) => void;
+}
+
 export default function Tweet({
   username,
   image,
@@ -201,7 +207,10 @@ export default function Tweet({
   createdAt,
   updatedAt,
   likes = [],
-}: ITweet) {
+  onDeleteSuccess,
+  onLikeSuccess,
+  onEditSuccess,
+}: TweetProps) {
   const user = auth.currentUser;
   const [isLoading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -219,6 +228,7 @@ export default function Tweet({
     if (!ok || user?.uid !== userId) return;
     try {
       await deleteDoc(doc(db, "tweets", id));
+      onDeleteSuccess(id);
     } catch (e) {
       alert(getFirebaseErrorMessage(e));
     } finally {
@@ -300,6 +310,12 @@ export default function Tweet({
       // 4. Firestore 업데이트 실행
       await updateDoc(tweetRef, updateData);
 
+      onEditSuccess(id, {
+        tweet: editedTweet,
+        image: updateData.image !== undefined ? updateData.image : image,
+        updatedAt: updateData.updatedAt,
+      });
+
       setEditMode(false);
       setPhotoFile(null);
     } catch (e) {
@@ -319,6 +335,9 @@ export default function Tweet({
   const onLike = async () => {
     if (!user) return;
     const tweetRef = doc(db, "tweets", id);
+    const newLikes = isLiked
+      ? likes.filter((uid) => uid !== user.uid)
+      : [...likes, user.uid];
 
     try {
       if (isLiked) {
@@ -326,6 +345,7 @@ export default function Tweet({
       } else {
         await updateDoc(tweetRef, { likes: arrayUnion(user.uid) });
       }
+      onLikeSuccess(id, newLikes);
     } catch (e) {
       alert(getFirebaseErrorMessage(e));
     }
