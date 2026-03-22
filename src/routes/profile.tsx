@@ -16,6 +16,7 @@ import Tweet from "../components/tweet";
 import { updateProfile } from "firebase/auth";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 import { useTweets } from "../hooks/use-tweets";
+import { IconButton } from "../components/common/Button/IconButton";
 
 const Wrapper = styled.div`
   display: flex;
@@ -77,59 +78,65 @@ const NameContainer = styled.div<{ $editMode: boolean }>`
   display: flex;
   align-items: center;
   position: relative;
-  border-bottom: ${(props) => (props.$editMode ? "1px solid #1d9bf0" : "none")};
 `;
 const Name = styled.span`
   font-size: 22px;
 `;
 
-const TabWrapper = styled.div`
+const TabContainer = styled.div`
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 20px;
+  background-color: #ffffff29;
+  border-radius: 50px;
   margin-top: 30px;
 `;
-const TabButton = styled.button<{ $active: boolean }>`
-  border: none;
-  background-color: transparent;
-  border-bottom: 1px solid
-    ${(props) => (props.$active ? "white" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "#808080")};
-  font-size: 14px;
-  cursor: pointer;
-`;
 
-const BaseButton = styled.div`
+const SlidingBackground = styled.div<{ $index: number }>`
   position: absolute;
+  top: 4px;
+  left: 4px;
+
+  width: calc(50% - 4px); // 버튼 2개 기준
+  height: calc(100% - 8px);
+
+  background-color: #4898e3;
+  border-radius: 50px;
+
+  transform: translateX(${(p) => p.$index * 100}%);
+  transition: transform 0.3s ease;
+`;
+
+const TabButton = styled.button<{ $active: boolean }>`
+  flex: 1;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  color: ${(p) => (p.$active ? "white" : "#ffffff80")};
+  padding: 10px 30px;
   cursor: pointer;
-  width: 18px;
-  display: flex;
-  align-items: center;
-  svg {
-    fill: white;
-  }
-  &:hover {
-    opacity: 0.8;
-  }
+  transition: color 0.2s ease;
 `;
 
-const Button = styled(BaseButton)`
+const StyledIconButton = styled(IconButton)`
+  margin: 0px 5px;
+`;
+
+const EditButton = styled(IconButton)`
+  position: absolute;
   left: 100%;
-  margin-left: 5px;
+  margin-left: 10px;
 `;
 
-const CancelButton = styled(BaseButton)`
-  right: 100%;
-  margin-right: 5px;
-`;
-
-const Input = styled.input`
+const Input = styled.input<{ $editMode: boolean }>`
   width: 120px;
   font-size: 22px;
   text-align: center;
   background: transparent;
   color: white;
+  padding: 0px 15px 0px 5px;
   border: none;
+
+  border-bottom: ${(props) => (props.$editMode ? "1px solid #1d9bf0" : "none")};
 
   &:focus {
     outline: none;
@@ -137,6 +144,8 @@ const Input = styled.input`
 `;
 
 const TextLength = styled.span`
+  position: absolute;
+  right: 30px;
   font-size: 12px;
   color: #808080;
 `;
@@ -174,6 +183,7 @@ export default function Profile() {
   const [newName, setNewName] = useState(user?.displayName ?? "");
   const MAX_FILE_SIZE = 300 * 1024;
   const [mode, setMode] = useState<"mine" | "likes">("mine");
+  const tabIndex = mode === "mine" ? 0 : 1;
   const {
     tweets,
     isLoading: isTweetsLoading,
@@ -337,7 +347,7 @@ export default function Profile() {
         <NameContainer $editMode={editMode}>
           {editMode ? (
             <>
-              <CancelButton onClick={onCancel}>
+              <StyledIconButton onClick={onCancel}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -350,8 +360,9 @@ export default function Profile() {
                     clipRule="evenodd"
                   />
                 </svg>
-              </CancelButton>
+              </StyledIconButton>
               <Input
+                $editMode={editMode}
                 onChange={(e) => setNewName(e.target.value)}
                 value={newName}
                 type="text"
@@ -359,29 +370,25 @@ export default function Profile() {
                 required
               />
               <TextLength>{newName.length}</TextLength>
-              <Button onClick={onUpdate}>
-                {isLoading ? (
-                  "Loading..."
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-6"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </Button>
+              <StyledIconButton isLoading={isLoading} onClick={onUpdate}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </StyledIconButton>
             </>
           ) : (
             <>
               <Name>{user?.displayName ?? "Anonymous"}</Name>
-              <Button onClick={onEdit}>
+              <EditButton onClick={onEdit}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -394,27 +401,28 @@ export default function Profile() {
                     clipRule="evenodd"
                   />
                 </svg>
-              </Button>
+              </EditButton>
             </>
           )}
         </NameContainer>
       </NameWrapper>
-      <TabWrapper>
+      <TabContainer>
+        <SlidingBackground $index={tabIndex} />
+
         <TabButton
-          type="button"
           $active={mode === "mine"}
           onClick={() => handleTabClick("mine")}
         >
           Mine
         </TabButton>
+
         <TabButton
-          type="button"
           $active={mode === "likes"}
           onClick={() => handleTabClick("likes")}
         >
           Likes
         </TabButton>
-      </TabWrapper>
+      </TabContainer>
       <Tweets>
         {isTweetsLoading && tweets.length === 0 ? (
           <LoadingText>Loading...</LoadingText>

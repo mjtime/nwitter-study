@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import Button from "./common/Button";
 
 export const Wrapper = styled.div`
   height: 100%;
@@ -25,14 +26,11 @@ export const Input = styled.input`
   border: none;
   width: 100%;
   font-size: 16px;
-  &[type="submit"] {
-    cursor: pointer;
-    background-color: #1d9bf0;
-    color: white;
-    &:hover {
-      opacity: 0.8;
-    }
   }
+`;
+
+export const SubmitButton = styled(Button)`
+  width: 100%;
 `;
 
 export const Error = styled.span`

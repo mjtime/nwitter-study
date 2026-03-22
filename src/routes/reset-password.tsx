@@ -3,6 +3,7 @@ import {
   Error,
   Form,
   Input,
+  SubmitButton,
   Switcher,
   Title,
   Wrapper,
@@ -43,10 +44,14 @@ export default function ResetPassword() {
           type="email"
           required
         />
-        <Input
+        <SubmitButton
+          variant="submit"
           type="submit"
-          value={isLoading ? "Loading..." : "Send Reset Email"}
-        />
+          isLoading={isLoading}
+          size="lg"
+        >
+          Send Reset Email
+        </SubmitButton>
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
       <Switcher>

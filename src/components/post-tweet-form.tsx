@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { auth, db } from "../firebase";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 import type { ITweet } from "../types/tweet.types";
+import Button from "./common/Button";
+import { IconButton } from "./common/Button/IconButton";
 
 const Form = styled.form`
   display: flex;
@@ -47,33 +49,8 @@ const TextLength = styled.p<{ $isLimit: boolean }>`
   font-size: 12px;
 `;
 
-const AttachFileButton = styled.label`
-  padding: 10px 0px;
-  color: #1d9bf0;
-  text-align: center;
-  border-radius: 20px;
-  border: 1px solid #1d9bf0;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-`;
-
 const AttachFileInput = styled.input`
   display: none;
-`;
-
-const SubmitBtn = styled.input`
-  background-color: #1d9bf0;
-  color: white;
-  border: none;
-  padding: 10px 0px;
-  border-radius: 20px;
-  font-size: 16px;
-  cursor: pointer;
-  &:hover,
-  &:active {
-    opacity: 0.9;
-  }
 `;
 
 const ImgPreviewWrapper = styled.div`
@@ -81,17 +58,10 @@ const ImgPreviewWrapper = styled.div`
   width: 100%;
 `;
 
-const RemoveImageButton = styled.button`
+const RemoveImageButton = styled(IconButton)`
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background-color: transparent;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
 `;
 
 const ImgPreview = styled.img`
@@ -197,15 +167,26 @@ export default function PostTweetForm({ onPostSuccess }: PostTweetFormProps) {
       {file && (
         <ImgPreviewWrapper>
           <ImgPreview src={file} alt="uploaded preview" />
-          <RemoveImageButton type="button" onClick={onRemoveImage}>
-            ×
+          <RemoveImageButton $size="sm" onClick={onRemoveImage}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </svg>
           </RemoveImageButton>
         </ImgPreviewWrapper>
       )}
 
-      <AttachFileButton htmlFor="file">
+      <Button variant="upload" as={"label"} htmlFor="file">
         {file ? "Photo added✅" : "Add photo"}
-      </AttachFileButton>
+      </Button>
       <AttachFileInput
         ref={fileInputRef}
         onChange={onFileChange}
@@ -213,10 +194,9 @@ export default function PostTweetForm({ onPostSuccess }: PostTweetFormProps) {
         id="file"
         accept="image/*"
       />
-      <SubmitBtn
-        type="submit"
-        value={isLoading ? "Posting..." : "Post Tweet"}
-      />
+      <Button variant="submit" type="submit" isLoading={isLoading}>
+        Post
+      </Button>
     </Form>
   );
 }

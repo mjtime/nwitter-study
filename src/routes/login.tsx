@@ -6,6 +6,7 @@ import {
   Error,
   Form,
   Input,
+  SubmitButton,
   Switcher,
   Title,
   Wrapper,
@@ -84,7 +85,14 @@ export default function Login() {
           type="password"
           required
         />
-        <Input type="submit" value={isLoading ? "Loading..." : "Log in"} />
+        <SubmitButton
+          variant="submit"
+          type="submit"
+          isLoading={isLoading}
+          size="lg"
+        >
+          Log In
+        </SubmitButton>
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
       <Switcher>

@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import type { ITweet } from "../types/tweet.types";
 import { auth, db } from "../firebase";
 import {
@@ -10,6 +10,8 @@ import {
 } from "firebase/firestore";
 import { useState } from "react";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
+import Button from "./common/Button";
+import { IconButton } from "./common/Button/IconButton";
 
 const Wrapper = styled.div`
   display: flex;
@@ -75,7 +77,7 @@ const PhotoEditButtons = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
-  align-items: center;
+  align-items: stretch;
 `;
 
 const HiddenInput = styled.input`
@@ -119,75 +121,10 @@ const ActionGroup = styled.div`
 
 const ControlGroup = styled.div`
   display: flex;
-  gap: 10px;
   justify-content: flex-end;
   margin-left: auto;
 `;
 
-// 공통 Button CSS 헬퍼 (Text / Outline)
-const textStyle = css<{ $btnColor?: string }>`
-  background-color: inherit;
-  color: #ffffff80;
-  border: 0;
-  font-size: 11px;
-  padding: 5px 0px;
-  text-transform: uppercase;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: color 0.2s;
-  &:hover {
-    color: ${(props) => props.$btnColor || "#f08080"};
-  }
-`;
-
-const outlineStyle = css<{ $btnColor?: string }>`
-  display: block;
-  width: 100%;
-  background-color: inherit;
-  border: 1px solid ${(props) => props.$btnColor || "#ffffff80"};
-  color: ${(props) => props.$btnColor || "#ffffff80"};
-  border-radius: 15px;
-  font-size: 11px;
-  padding: 3px 0px;
-  text-align: center;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: opacity 0.2s;
-  opacity: 0.8;
-  &:hover {
-    opacity: 1;
-  }
-`;
-
-// 통합 버튼 컴포넌트 ($version에 따라 스타일 분기)
-const Button = styled.button<{
-  $version: "text" | "outline";
-  $btnColor?: string;
-}>`
-  ${(props) => (props.$version === "outline" ? outlineStyle : textStyle)}
-`;
-
-const LabelButton = styled.label<{
-  $version: "text" | "outline";
-  $btnColor?: string;
-}>`
-  ${(props) => (props.$version === "outline" ? outlineStyle : textStyle)}
-  /* label은 inline이 기본이므로 outline일 때만 block 처리 */
-  display: ${(props) =>
-    props.$version === "outline" ? "block" : "inline-block"};
-`;
-
-const LikeButton = styled.div<{ $isLiked: boolean }>`
-  cursor: pointer;
-
-  display: flex;
-  svg {
-    width: 20px;
-    fill: ${(props) => (props.$isLiked ? "#f08080" : "none")};
-    stroke: ${(props) => (props.$isLiked ? "#f08080" : "currentColor")};
-  }
-`;
 const LikeCount = styled.span`
   font-size: 16px;
 `;
@@ -394,13 +331,14 @@ export default function Tweet({
                 <Photo src={photoPreview} />
               </PhotoContainer>
               <PhotoEditButtons>
-                <LabelButton
+                <Button
+                  as="label"
+                  variant="upload"
+                  size="sm"
                   htmlFor={`file-change-${id}`}
-                  $version="outline"
-                  $btnColor="#5da9ff"
                 >
                   Change
-                </LabelButton>
+                </Button>
                 <HiddenInput
                   type="file"
                   id={`file-change-${id}`}
@@ -408,9 +346,9 @@ export default function Tweet({
                   onChange={onFileChange}
                 />
                 <Button
+                  variant="active_nev_border"
+                  size="sm"
                   onClick={onDeletePhoto}
-                  $version="outline"
-                  $btnColor="#f08080"
                 >
                   Delete
                 </Button>
@@ -426,7 +364,12 @@ export default function Tweet({
       <ButtonGroup>
         {!editMode && (
           <ActionGroup>
-            <LikeButton onClick={onLike} $isLiked={isLiked}>
+            <IconButton
+              $variant={isLiked ? "lineFilled" : "line"}
+              $size="sm"
+              $color="red"
+              onClick={onLike}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -441,7 +384,7 @@ export default function Tweet({
                   d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
                 />
               </svg>
-            </LikeButton>
+            </IconButton>
             <LikeCount>{likeCount}</LikeCount>
           </ActionGroup>
         )}
@@ -449,18 +392,19 @@ export default function Tweet({
           <ControlGroup>
             {editMode ? (
               <>
-                <Button onClick={onCancel} $version="text">
+                <Button variant="active_nev" size="sm" onClick={onCancel}>
                   Cancel
                 </Button>
                 {!photoPreview && (
                   <>
-                    <LabelButton
+                    <Button
+                      as={"label"}
+                      variant="active_pos"
+                      size="sm"
                       htmlFor={`file-add-${id}`}
-                      $version="text"
-                      $btnColor="#5da9ff"
                     >
                       Add Photo
-                    </LabelButton>
+                    </Button>
                     <HiddenInput
                       type="file"
                       id={`file-add-${id}`}
@@ -469,16 +413,21 @@ export default function Tweet({
                     />
                   </>
                 )}
-                <Button onClick={onUpdate} $version="text" $btnColor="#5da9ff">
-                  {isLoading ? "Loading..." : "Update"}
+                <Button
+                  variant="active_pos"
+                  size="sm"
+                  isLoading={isLoading}
+                  onClick={onUpdate}
+                >
+                  Update
                 </Button>
               </>
             ) : (
               <>
-                <Button onClick={onEdit} $version="text" $btnColor="#5da9ff">
+                <Button variant="active_pos" size="sm" onClick={onEdit}>
                   Edit
                 </Button>
-                <Button onClick={onDelete} $version="text">
+                <Button variant="active_nev" size="sm" onClick={onDelete}>
                   Delete
                 </Button>
               </>

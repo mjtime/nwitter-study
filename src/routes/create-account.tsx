@@ -10,6 +10,7 @@ import {
   Error,
   Form,
   Input,
+  SubmitButton,
   Switcher,
   Title,
   Wrapper,
@@ -100,10 +101,14 @@ export default function CreateAccount() {
           type="password"
           required
         />
-        <Input
+        <SubmitButton
+          variant="submit"
           type="submit"
-          value={isLoading ? "Loading..." : "Create Account"}
-        />
+          isLoading={isLoading}
+          size="lg"
+        >
+          Create Account
+        </SubmitButton>
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
       <Switcher>

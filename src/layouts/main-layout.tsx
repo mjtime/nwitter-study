@@ -1,6 +1,12 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth } from "../firebase";
+import { IconButton } from "../components/common/Button/IconButton";
+
+const menuButtonProps = {
+  $variant: "border",
+  $size: "md",
+} as const;
 
 const Wrapper = styled.div`
   display: grid;
@@ -21,26 +27,6 @@ const Menu = styled.div`
   position: sticky;
   top: 50px;
 `;
-const MenuItem = styled.div`
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
-  height: 50px;
-  width: 50px;
-  border-radius: 50%;
-  svg {
-    width: 30px;
-    fill: white;
-  }
-  &.log-out {
-    border-color: tomato;
-    svg {
-      fill: tomato;
-    }
-  }
-`;
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -55,7 +41,7 @@ export default function MainLayout() {
     <Wrapper>
       <Menu>
         <Link to="/">
-          <MenuItem>
+          <IconButton {...menuButtonProps}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -65,10 +51,10 @@ export default function MainLayout() {
               <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
               <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
             </svg>
-          </MenuItem>
+          </IconButton>
         </Link>
         <Link to="/profile">
-          <MenuItem>
+          <IconButton {...menuButtonProps}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -81,10 +67,10 @@ export default function MainLayout() {
                 clipRule="evenodd"
               />
             </svg>
-          </MenuItem>
+          </IconButton>
         </Link>
         <Link to="/settings">
-          <MenuItem>
+          <IconButton {...menuButtonProps}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -97,9 +83,9 @@ export default function MainLayout() {
                 clipRule="evenodd"
               />
             </svg>
-          </MenuItem>
+          </IconButton>
         </Link>
-        <MenuItem onClick={onLogOut} className="log-out">
+        <IconButton {...menuButtonProps} $color="red" onClick={onLogOut}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -112,7 +98,7 @@ export default function MainLayout() {
               clipRule="evenodd"
             />
           </svg>
-        </MenuItem>
+        </IconButton>
       </Menu>
       <Outlet />
     </Wrapper>

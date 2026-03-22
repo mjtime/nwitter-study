@@ -20,6 +20,7 @@ import {
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
+import Button from "./common/Button";
 
 const Overlay = styled.div`
   position: fixed;
@@ -75,23 +76,6 @@ const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
   margin-top: 50px;
-`;
-const BaseButton = styled.button`
-  border: 1px solid;
-  border-radius: 15px;
-  padding: 7px 15px;
-  background-color: transparent;
-  cursor: pointer;
-`;
-const CancelBtn = styled(BaseButton)`
-  color: white;
-`;
-const DeleteBtn = styled(BaseButton)`
-  color: #f08080;
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
 const Line = styled.div`
@@ -201,8 +185,11 @@ export default function DeleteAccountModal({
           placeholder={REQUIRED_TEXT}
         ></Input>
         <ButtonContainer>
-          <CancelBtn onClick={onClose}>Cancel</CancelBtn>
-          <DeleteBtn
+          <Button variant="active_border" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="active_nev_border"
             onClick={onDelete}
             disabled={
               isLoading ||
@@ -210,9 +197,10 @@ export default function DeleteAccountModal({
               (user?.providerData[0].providerId === "password" &&
                 password.length < 6)
             }
+            isLoading={isLoading}
           >
-            {isLoading ? "Loading..." : "Delete"}
-          </DeleteBtn>
+            Delete
+          </Button>
         </ButtonContainer>
       </Modal>
     </Overlay>
