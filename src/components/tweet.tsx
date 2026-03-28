@@ -8,7 +8,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { useState } from "react";
+import { useOptimistic, useState } from "react";
 import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 import Button from "./common/Button";
 import { IconButton } from "./common/Button/IconButton";
@@ -135,6 +135,10 @@ interface TweetProps extends ITweet {
   onEditSuccess: (id: string, payload: Partial<ITweet>) => void;
 }
 
+type OptimisticAction =
+  | { type: "toggle" }
+  | { type: "rollback"; prev: boolean };
+
 export default function Tweet({
   username,
   image,
@@ -157,7 +161,23 @@ export default function Tweet({
     image ? image.value : null,
   );
   const isLiked = user ? likes.includes(user.uid) : false;
-  const likeCount = likes.length;
+  const [optimisticIsLiked, addOptimistic] = useOptimistic<
+    boolean,
+    OptimisticAction
+  >(isLiked, (currentState, action) => {
+    switch (action.type) {
+      case "toggle":
+        return !currentState;
+      case "rollback":
+        return action.prev;
+      default:
+        return currentState;
+    }
+  });
+  const [pending, setPending] = useState(false);
+  const likeCount =
+    likes.length +
+    (optimisticIsLiked !== isLiked ? (optimisticIsLiked ? 1 : -1) : 0);
   const MAX_FILE_SIZE = 300 * 1024;
 
   const onDelete = async () => {
@@ -270,21 +290,40 @@ export default function Tweet({
   };
 
   const onLike = async () => {
+    // 로그인 안 되어 있으면 실행 X
     if (!user) return;
-    const tweetRef = doc(db, "tweets", id);
-    const newLikes = isLiked
-      ? likes.filter((uid) => uid !== user.uid)
-      : [...likes, user.uid];
+    // 이미 요청 진행 중이면 연타 방지
+    if (pending) return;
+    setPending(true);
 
+    // 현재 optimistic 상태 저장 (rollback용)
+    const prev = optimisticIsLiked;
+    const tweetRef = doc(db, "tweets", id);
+
+    // 1. 낙관적 업데이트 (UI 먼저 변경)
+    addOptimistic({ type: "toggle" });
     try {
-      if (isLiked) {
+      // 2. 서버에 보낼 새로운 likes 배열 계산, 안전을 위해 prev 기준으로 판단
+      const newLikes = prev
+        ? likes.filter((uid) => uid !== user.uid)
+        : [...likes, user.uid];
+
+      // 3. Firestore 업데이트
+      if (prev) {
         await updateDoc(tweetRef, { likes: arrayRemove(user.uid) });
       } else {
         await updateDoc(tweetRef, { likes: arrayUnion(user.uid) });
       }
+      // 4. 부모 상태 업데이트 (실제 데이터 동기화)
+      // → tweets 리스트의 likes 배열을 갱신
       onLikeSuccess(id, newLikes);
     } catch (e) {
       alert(getFirebaseErrorMessage(e));
+      // 5. rollback (optimistic 상태 복구)
+      addOptimistic({ type: "rollback", prev });
+    } finally {
+      // 6. 요청 종료 → 다시 클릭 가능
+      setPending(false);
     }
   };
 
@@ -365,7 +404,7 @@ export default function Tweet({
         {!editMode && (
           <ActionGroup>
             <IconButton
-              $variant={isLiked ? "lineFilled" : "line"}
+              $variant={optimisticIsLiked ? "lineFilled" : "line"}
               $size="sm"
               $color="red"
               onClick={onLike}
