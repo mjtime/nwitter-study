@@ -6,47 +6,12 @@ import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 import type { ITweet } from "../types/tweet.types";
 import Button from "./common/Button";
 import { IconButton } from "./common/Button/IconButton";
+import TextInputWithLimit from "./common/TextInputWithLimit";
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 10px;
-`;
-
-const TextArea = styled.textarea`
-  border: 2px solid white;
-  padding: 20px;
-  border-radius: 20px;
-  font-size: 16px;
-  color: white;
-  background-color: black;
-  width: 100%;
-  resize: none;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Open Sans",
-    "Helvetica Neue",
-    sans-serif;
-  &::placeholder {
-    font-size: 16px;
-  }
-  &:focus {
-    outline: none;
-    border-color: #1d9bf0;
-  }
-`;
-
-const TextLength = styled.p<{ $isLimit: boolean }>`
-  align-self: flex-end;
-  color: ${(props) => (props.$isLimit ? "#f08080" : "#ffffff80")};
-  font-size: 12px;
 `;
 
 const AttachFileInput = styled.input`
@@ -82,9 +47,6 @@ export default function PostTweetForm({ onPostSuccess }: PostTweetFormProps) {
   const [file, setFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const MAX_FILE_SIZE = 300 * 1024; // 300KB
-  const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTweet(e.target.value);
-  };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -155,15 +117,7 @@ export default function PostTweetForm({ onPostSuccess }: PostTweetFormProps) {
   };
   return (
     <Form onSubmit={onSubmit}>
-      <TextArea
-        required
-        rows={5}
-        maxLength={180}
-        onChange={onChange}
-        value={tweet}
-        placeholder="What is happening?"
-      />
-      <TextLength $isLimit={tweet.length >= 180}>{tweet.length}/180</TextLength>
+      <TextInputWithLimit value={tweet} onChange={setTweet} />
       {file && (
         <ImgPreviewWrapper>
           <ImgPreview src={file} alt="uploaded preview" />

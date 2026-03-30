@@ -7,6 +7,7 @@ import { getFirebaseErrorMessage } from "../utils/firebase-errors";
 import Button from "./common/Button";
 import { IconButton } from "./common/Button/IconButton";
 import { useLike } from "../hooks/useLike";
+import TextInputWithLimit from "./common/TextInputWithLimit";
 
 const Wrapper = styled.div`
   display: flex;
@@ -45,6 +46,7 @@ const Content = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin: 10px 0;
 `;
 
 const Payload = styled.p`
@@ -77,29 +79,6 @@ const PhotoEditButtons = styled.div`
 
 const HiddenInput = styled.input`
   display: none;
-`;
-
-const TextArea = styled.textarea`
-  font-size: 18px;
-  font-family: inherit;
-  color: white;
-  background-color: black;
-  border: 2px solid #007fff;
-  border-radius: 10px;
-  padding: 10px;
-  width: 100%;
-  resize: none;
-
-  &:focus {
-    outline: none;
-    border-color: #1d9bf0;
-  }
-`;
-
-const TextLength = styled.p<{ $isLimit: boolean }>`
-  align-self: flex-end;
-  color: ${(props) => (props.$isLimit ? "#f08080" : "#ffffff80")};
-  font-size: 12px;
 `;
 
 const ButtonGroup = styled.div`
@@ -287,18 +266,7 @@ export default function Tweet({
       <Main>
         <Content>
           {editMode ? (
-            <>
-              <TextArea
-                value={editedTweet}
-                onChange={(e) => setEditedTweet(e.target.value)}
-                maxLength={180}
-                required
-                rows={5}
-              />
-              <TextLength $isLimit={editedTweet.length >= 180}>
-                {editedTweet.length}/180
-              </TextLength>
-            </>
+            <TextInputWithLimit value={editedTweet} onChange={setEditedTweet} />
           ) : (
             <Payload>{tweet}</Payload>
           )}
